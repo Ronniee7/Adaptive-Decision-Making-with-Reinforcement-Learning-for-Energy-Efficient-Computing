@@ -1,0 +1,86 @@
+
+# Adaptive Decision-Making with Reinforcement Learning for Energy-Efficient Computing
+
+## Research proposal outline
+
+### 1. Abstract
+Modern computing systems must balance energy use with performance targets as workloads and operating conditions change. This project proposes an adaptive controller that uses reinforcement learning (RL) to make resource-management decisions—such as CPU frequency selection, core allocation, and workload placement—in response to observed system conditions. The controller will be evaluated against conventional policies using energy, performance, and constraint-violation metrics across varied workloads. The goal is to determine whether RL can reduce energy consumption while maintaining service-level objectives (SLOs) and operating limits.
+
+### 2. Problem statement
+Static power-management policies often cannot respond well to changing workloads: conservative settings may waste energy, while aggressive energy saving may increase latency or reduce throughput. An adaptive controller could learn workload-sensitive decisions, but it must also handle noisy observations, changing workloads, and constraints such as latency and temperature.
+
+**Scope assumption:** Focus on a CPU-based computing system, with controllable CPU frequency and core allocation. The same framework could later be extended to accelerators or cluster scheduling.
+
+### 3. Research questions
+1. Can an RL controller reduce energy consumption relative to standard power-management policies without violating defined performance targets?
+2. How well does the controller generalize to workload patterns not seen during training?
+3. What trade-offs arise between energy savings, latency, throughput, and controller complexity?
+
+### 4. Proposed approach
+
+#### System model
+Represent the computing system as a sequential decision process:
+
+- **Observations:** CPU utilization, queue length, recent throughput and latency, current frequency, core allocation, power, and temperature.
+- **Actions:** Select an allowed CPU frequency state, adjust the number of active cores, or both.
+- **Decision interval:** Apply actions at fixed intervals, chosen to balance responsiveness against measurement and switching overhead.
+- **Constraints:** Enforce thermal and hardware limits; define latency or throughput targets as explicit SLOs.
+
+#### Learning objective
+Use a reward that favors lower energy while penalizing poor performance and unsafe operation. For example:
+
+\[
+r_t = -\alpha E_t - \beta \max(0, L_t-L_{\text{target}}) - \gamma V_t
+\]
+
+where \(E_t\) is energy over the interval, \(L_t\) is a latency measure, and \(V_t\) represents constraint violations. The weights should be tuned or tested through sensitivity analysis rather than assumed to have a universally optimal value.
+
+#### Candidate algorithms
+Start with a tractable baseline such as **DQN** for a discrete action space. Compare it with a rule-based controller and a conventional OS power-management policy. If the action space or control requirements warrant it, evaluate **PPO** as an alternative. Include a simple heuristic controller as a transparent reference point.
+
+#### Safety and deployment
+Train and test in a simulator or replay environment before hardware trials. Restrict the action space to valid settings, apply independent thermal and SLO safeguards, and retain a fallback policy if the learned controller behaves unexpectedly.
+
+### 5. Experimental design
+Evaluate on a representative mix of compute-bound, memory-bound, and bursty workloads. Separate training workloads from test workloads to measure generalization. Run repeated trials under comparable initial conditions and report variability.
+
+**Baselines**
+- Default operating-system power management
+- Fixed high-performance and energy-saving configurations
+- A rule-based adaptive policy
+- The proposed RL controller
+
+**Metrics**
+- Total energy and average power
+- Energy per completed task or request
+- Throughput
+- Median and tail latency (such as p95)
+- SLO violation rate
+- Thermal-limit events
+- Control overhead and action-switching frequency
+
+### 6. Evaluation criteria and hypotheses
+The controller will be considered successful if it achieves lower energy use than the default policy while keeping SLO violations within a predefined acceptable bound. Results should also show whether improvements persist across unseen workloads and whether they justify the additional training and runtime complexity.
+
+**Hypotheses**
+- An adaptive RL policy can reduce energy relative to a fixed high-performance configuration.
+- Compared with the default policy, RL may improve the energy–performance trade-off for changing workloads.
+- Generalization and constraint handling will be more challenging than performance on the training workload set.
+
+### 7. Expected contributions
+- An RL-based control formulation for energy-aware CPU resource management.
+- An evaluation across varied workloads against established and interpretable baselines.
+- An analysis of energy–performance trade-offs, generalization, and safety constraints.
+
+### 8. Suggested paper structure
+1. Introduction and motivation  
+2. Background and related work  
+3. System model and problem formulation  
+4. RL controller design  
+5. Experimental setup  
+6. Results  
+7. Discussion, limitations, and threats to validity  
+8. Conclusion and future work  
+
+### 9. Key limitations to address
+Results may depend on the hardware, workload mix, measurement accuracy, and reward-function design. Training may also be costly, and a controller that performs well in simulation may not transfer directly to real hardware. The evaluation should report these conditions clearly and avoid treating energy savings as meaningful if they come at the cost of unacceptable latency or reliability.
